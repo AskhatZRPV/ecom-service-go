@@ -1,5 +1,3 @@
--- BEGIN;
-
 CREATE TABLE IF NOT EXISTS cart_items (
   id bigint PRIMARY KEY NOT NULL,
   cart_id bigint NOT NULL,
@@ -69,19 +67,10 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 ALTER TABLE IF NOT EXISTS cart_items ADD FOREIGN KEY (cart_id) REFERENCES carts (id);
-
 ALTER TABLE IF NOT EXISTS cart_items ADD FOREIGN KEY (product_id) REFERENCES products (id);
-
 ALTER TABLE IF NOT EXISTS orders ADD FOREIGN KEY (customer_id) REFERENCES customers (id);
-
 ALTER TABLE IF NOT EXISTS carts ADD FOREIGN KEY (customer_id) REFERENCES customers (id);
-
 ALTER TABLE IF NOT EXISTS order_items ADD FOREIGN KEY (order_id) REFERENCES orders (id);
-
 ALTER TABLE IF NOT EXISTS order_items ADD FOREIGN KEY (product_id) REFERENCES products (id);
-
 ALTER TABLE IF NOT EXISTS products ADD FOREIGN KEY (category_id) REFERENCES categories (id);
-
 ALTER TABLE IF NOT EXISTS customers ADD FOREIGN KEY (user_id) REFERENCES users (id);
-
--- COMMIT;
