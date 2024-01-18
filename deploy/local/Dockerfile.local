@@ -7,8 +7,6 @@ RUN go mod download
 
 COPY . ./
 
-
-RUN ls -a
 RUN CGO_ENABLED=0 GOOS=linux go build -o /ecomsvc ./cmd/app
 
 FROM build-stage AS run-test-stage
@@ -19,6 +17,7 @@ FROM gcr.io/distroless/base-debian11 AS build-release-stage
 WORKDIR /
 
 COPY --from=build-stage /ecomsvc /ecomsvc
+COPY config config
 
 EXPOSE 8080
 
