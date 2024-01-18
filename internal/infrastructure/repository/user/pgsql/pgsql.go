@@ -19,18 +19,13 @@ func New(db *sqlx.DB) user.Repository {
 	return &repo{db}
 }
 
-/*
-I simplified this part but I suggest placing an extra package QUERIES WITH:
-- squirrel query builder
-- database schema constants (such as tables)
-*/
 func (i *repo) Save(ctx context.Context, u *user.User) error {
 	const insertUserQuery = `
-		INSERT INTO users (id, username, password) VALUES($1, $2, $3);
+		INSERT INTO users (username, password, role, created_at) VALUES($1, $2, $3, $4);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, i.db)
-	if _, err := q.ExecContext(ctx, insertUserQuery, u.ID, u.Username, u.Password); err != nil {
+	if _, err := q.ExecContext(ctx, insertUserQuery, u.Username, u.Password, u.Role, u.CreatedAt); err != nil {
 		return errors.Wrap(err, "failed to insert new user recotd")
 	}
 
