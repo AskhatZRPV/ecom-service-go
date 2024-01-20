@@ -1,38 +1,37 @@
-CREATE TABLE IF NOT EXISTS cart_items (
+CREATE TABLE IF NOT EXISTS cart_item (
   id SERIAL PRIMARY KEY NOT NULL,
-  cart_id bigint NOT NULL,
+  session_id bigint NOT NULL,
   product_id bigint NOT NULL,
   quantity bigint
 );
 
-CREATE TABLE IF NOT EXISTS carts (
+CREATE TABLE IF NOT EXISTS category (
   id SERIAL PRIMARY KEY NOT NULL,
-  customer_id bigint NOT NULL,
-  total_price bigint,
-  created_at timestamp,
-  updated_at timestamp
+  title VARCHAR(50) NOT NULL,
+  description text,
 );
 
-CREATE TABLE IF NOT EXISTS categories (
+CREATE TABLE IF NOT EXISTS inventory (
   id SERIAL PRIMARY KEY NOT NULL,
-  name VARCHAR(50) NOT NULL,
-  description text
+  quantity int,
+  description text,
 );
 
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE IF NOT EXISTS user_address (
   id SERIAL PRIMARY KEY NOT NULL,
   user_id bigint NOT NULL,
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50),
-  address VARCHAR(255),
+  address_line1 VARCHAR(255),
   city VARCHAR,
-  zip_code VARCHAR(10),
+  postal_code VARCHAR(10),
   country VARCHAR(50),
+  phone_number VARCHAR(10),
   created_at timestamp,
   updated_at timestamp
 );
 
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE IF NOT EXISTS order_item (
   id SERIAL PRIMARY KEY NOT NULL,
   order_id bigint NOT NULL,
   product_id bigint NOT NULL,
@@ -40,23 +39,38 @@ CREATE TABLE IF NOT EXISTS order_items (
   price bigint
 );
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS order (
   id SERIAL PRIMARY KEY NOT NULL,
-  customer_id bigint NOT NULL,
+  payment_id bigint,
+  user_id bigint NOT NULL,
   status VARCHAR,
-  created_at timestamp,
-  updated_at timestamp
+  created_at timestamp
 );
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS payment (
+  id SERIAL PRIMARY KEY NOT NULL,
+  order_id bigint,
+  amount bigint,
+  created_at timestamp
+);
+
+CREATE TABLE IF NOT EXISTS product (
   id SERIAL PRIMARY KEY NOT NULL,
   category_id bigint NOT NULL,
-  name VARCHAR,
+  inventory_id bigint NOT NULL,
+  SKU varchar,
+  title VARCHAR,
   description text,
-  price bigint
+  price bigint,
 );
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS shopping_session (
+  id SERIAL PRIMARY KEY NOT NULL,
+  user_id int,
+  total int
+);
+
+CREATE TABLE IF NOT EXISTS user (
   id SERIAL PRIMARY KEY NOT NULL,
   username VARCHAR(100) UNIQUE,
   password VARCHAR(255),
@@ -66,11 +80,27 @@ CREATE TABLE IF NOT EXISTS users (
   last_login_attempt timestamp
 );
 
-ALTER TABLE cart_items ADD FOREIGN KEY (cart_id) REFERENCES carts (id);
-ALTER TABLE cart_items ADD FOREIGN KEY (product_id) REFERENCES products (id);
-ALTER TABLE orders ADD FOREIGN KEY (customer_id) REFERENCES customers (id);
-ALTER TABLE carts ADD FOREIGN KEY (customer_id) REFERENCES customers (id);
-ALTER TABLE order_items ADD FOREIGN KEY (order_id) REFERENCES orders (id);
-ALTER TABLE order_items ADD FOREIGN KEY (product_id) REFERENCES products (id);
-ALTER TABLE products ADD FOREIGN KEY (category_id) REFERENCES categories (id);
-ALTER TABLE customers ADD FOREIGN KEY (user_id) REFERENCES users (id);
+CREATE TABLE IF NOT EXISTS user_account (
+  id SERIAL PRIMARY KEY NOT NULL,
+  user_id int,
+  balance int,
+);
+
+CREATE TABLE IF NOT EXISTS session (
+  id uuid,
+  user_id int,
+  expires_at timestamp
+);
+
+ALTER TABLE order ADD FOREIGN KEY (user_id) REFERENCES user (id);
+ALTER TABLE order ADD FOREIGN KEY (payment_id) REFERENCES payment (id);
+ALTER TABLE product ADD FOREIGN KEY (inventory_id) REFERENCES inventory (id);
+ALTER TABLE product ADD FOREIGN KEY (category_id) REFERENCES category (id);
+ALTER TABLE order_item ADD FOREIGN KEY (order_id) REFERENCES order (id);
+ALTER TABLE order_item ADD FOREIGN KEY (product_id) REFERENCES product (id);
+ALTER TABLE cart_item ADD FOREIGN KEY (session_id) REFERENCES shopping_session (id);
+ALTER TABLE cart_item ADD FOREIGN KEY (product_id) REFERENCES product (id);
+ALTER TABLE shopping_session ADD FOREIGN KEY (user_id) REFERENCES user (id);
+ALTER TABLE user_account ADD FOREIGN KEY (user_id) REFERENCES user (id);
+ALTER TABLE user_address ADD FOREIGN KEY (user_id) REFERENCES user (id);
+
