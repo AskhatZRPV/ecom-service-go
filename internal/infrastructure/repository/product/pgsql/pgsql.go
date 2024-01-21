@@ -23,7 +23,8 @@ func New(db *sqlx.DB) product.Repository {
 
 func (r *repo) Save(ctx context.Context, p *product.Product) error {
 	const insertUserQuery = `
-		INSERT INTO product (id, title, description, price, category_id) VALUES($1, $2, $3, $4, $5);
+		INSERT INTO product (id, title, description, price, category_id) 
+		VALUES($1, $2, $3, $4, $5);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
@@ -36,7 +37,8 @@ func (r *repo) Save(ctx context.Context, p *product.Product) error {
 
 func (r *repo) FindById(ctx context.Context, id int) (*product.Product, error) {
 	const selectProductByIdQuery = `
-		SELECT * FROM product WHERE id = $1;
+		SELECT * FROM product 
+		WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
@@ -73,12 +75,12 @@ func (r *repo) GetAll(ctx context.Context) ([]product.Product, error) {
 
 func (r *repo) UpdateById(ctx context.Context, p *product.Product) (*product.Product, error) {
 	const updateById = `
-		UPDATE product SET category_id = $1, inventory_id = $2, SKU = $3, name = $4, description = $5, price = $6;
+		UPDATE product SET category_id = $2, inventory_id = $3, SKU = $4, name = $5, description = $6, price = $7 WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var row productRow
-	if err := q.GetContext(ctx, &row, updateById, p.CategoryId, p.InventoryId, p.SKU, p.Title, p.Description, p.Price); err != nil {
+	if err := q.GetContext(ctx, &row, updateById, p.ID, p.CategoryId, p.InventoryId, p.SKU, p.Title, p.Description, p.Price); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "product not found in pg repo")
@@ -90,14 +92,14 @@ func (r *repo) UpdateById(ctx context.Context, p *product.Product) (*product.Pro
 	return row.ToDomain(), nil
 }
 
-func (r *repo) Delete(ctx context.Context, p *product.Product) (*product.Product, error) {
+func (r *repo) Delete(ctx context.Context, id int) (*product.Product, error) {
 	const deleteById = `
 		DELETE FROM product WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var row productRow
-	if err := q.GetContext(ctx, &row, deleteById, p.ID); err != nil {
+	if err := q.GetContext(ctx, &row, deleteById, id); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "product not found in pg repo")
