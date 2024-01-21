@@ -77,12 +77,12 @@ func (r *repo) FindByUserId(ctx context.Context, id int) (*shoppingsession.Shopp
 
 func (r *repo) UpdateById(ctx context.Context, s *shoppingsession.ShoppingSession) (*shoppingsession.ShoppingSession, error) {
 	const updateById = `
-		UPDATE shopping_session SET total_price = $1;
+		UPDATE shopping_session SET total_price = $2 WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var row shoppingSessionRow
-	if err := q.GetContext(ctx, &row, updateById, s.TotalPrice); err != nil {
+	if err := q.GetContext(ctx, &row, updateById, s.ID, s.TotalPrice); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "shopping session not found in pg repo")
