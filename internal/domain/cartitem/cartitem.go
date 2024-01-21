@@ -1,10 +1,8 @@
 package cartitem
 
-import "time"
-
-type OrderItem struct {
-	ID         int
-	CustomerId int
-	Status     string
-	CreatedAt  time.Time
+type CartItem struct {
+	ID        int
+	SessionId int
+	ProductId int
+	Quantity  int
 }
