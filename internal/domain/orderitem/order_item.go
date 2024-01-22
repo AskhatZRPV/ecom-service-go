@@ -1,9 +1,8 @@
 package orderitem
 
 type OrderItem struct {
-	ID          int
-	Title       string
-	Description string
-	Price       int
-	CategoryId  int
+	ID        int
+	OrderId   int
+	ProductId int
+	Quantity  int
 }

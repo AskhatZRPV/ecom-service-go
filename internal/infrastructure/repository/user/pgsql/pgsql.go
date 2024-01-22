@@ -21,7 +21,7 @@ func New(db *sqlx.DB) user.Repository {
 
 func (i *repo) Save(ctx context.Context, u *user.User) error {
 	const insertUserQuery = `
-		INSERT INTO users (username, password, role, created_at) VALUES($1, $2, $3, $4);
+		INSERT INTO user (username, password, role, created_at) VALUES($1, $2, $3, $4);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, i.db)
@@ -34,7 +34,7 @@ func (i *repo) Save(ctx context.Context, u *user.User) error {
 
 func (i *repo) FindByUsername(ctx context.Context, username string) (*user.User, error) {
 	const selectUserByUsernameQuery = `
-		SELECT * FROM users WHERE username = $1;
+		SELECT * FROM user WHERE username = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, i.db)
@@ -54,13 +54,13 @@ func (i *repo) FindByUsername(ctx context.Context, username string) (*user.User,
 
 func (i *repo) UpdateLastLoginAttempt(ctx context.Context, id user.ID, updatedDate time.Time) error {
 	const updateUserLastLoginAttempForIDQuery = `
-		UPDATE users SET last_login_attempt = $1 WHERE id = $2
+		UPDATE user SET last_login_attempt = $1 WHERE id = $2
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, i.db)
 	r, err := q.ExecContext(ctx, updateUserLastLoginAttempForIDQuery, updatedDate, id)
 	if err != nil {
-		return errors.Wrap(err, "failed to update users tabler row")
+		return errors.Wrap(err, "failed to update users table row")
 	}
 
 	if rowsAffected, err := r.RowsAffected(); err != nil {
