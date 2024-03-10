@@ -13,3 +13,10 @@ func (i *inventoryRow) ToDomain() *inventory.Inventory {
 		Quantity: i.Quantity,
 	}
 }
+
+func toDomain(i inventoryRow) inventory.Inventory {
+	return inventory.Inventory{
+		ID:       i.ID,
+		Quantity: i.Quantity,
+	}
+}
