@@ -8,7 +8,7 @@ import (
 )
 
 func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
-	res, err := i.uaRepo.UpdateById(ctx, useraccount.Update(p.Balance))
+	res, err := i.uaRepo.UpdateById(ctx, useraccount.Update(p.ID, p.Balance))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to persist refresh token")
 	}

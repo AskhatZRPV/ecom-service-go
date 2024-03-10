@@ -10,9 +10,9 @@ type Payload struct {
 	Balance int
 }
 
-type Result = useraccount.UserAccount
+type Result = int
 
-type UseCase = usecase.UseCase[*Payload, *Result]
+type UseCase = usecase.UseCase[*Payload, Result]
 
 type implementation struct {
 	uaRepo useraccount.Repository
