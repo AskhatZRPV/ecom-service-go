@@ -1,0 +1,29 @@
+package get_getall
+
+import (
+	"ecomsvc/internal/application/order/getusersorders"
+	"ecomsvc/internal/interface/http_rest/common"
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+type handler struct {
+	usecase getusersorders.UseCase
+}
+
+func New(usecase getusersorders.UseCase) common.Handler {
+	return &handler{usecase}
+}
+
+func (h *handler) Pattern() string {
+	return "/order"
+}
+
+func (h *handler) Method() string {
+	return http.MethodGet
+}
+
+func (h *handler) Middleware() []fiber.Handler {
+	return []fiber.Handler{}
+}
