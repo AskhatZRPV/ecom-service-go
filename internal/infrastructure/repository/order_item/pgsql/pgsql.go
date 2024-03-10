@@ -20,19 +20,24 @@ func New(db *sqlx.DB) orderitem.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, o *orderitem.OrderItem) error {
+func (r *repo) Save(ctx context.Context, o *orderitem.OrderItem) (int, error) {
 	const createOrderItemQuery = `
 		INSERT INTO order (order_id, product_id, quantity)
 		VALUES($1, $2, $3);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	_, err := q.ExecContext(ctx, createOrderItemQuery, o.OrderId, o.ProductId, o.Quantity)
+	qRes, err := q.ExecContext(ctx, createOrderItemQuery, o.OrderId, o.ProductId, o.Quantity)
 	if err != nil {
-		return errors.Wrap(err, "failed to create order item record")
+		return 0, errors.Wrap(err, "failed to create order item record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*orderitem.OrderItem, error) {
