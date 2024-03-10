@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS inventory (
   id SERIAL PRIMARY KEY NOT NULL,
   quantity int,
-  description text,
 );
 
 CREATE TABLE IF NOT EXISTS user_address (
@@ -36,7 +35,6 @@ CREATE TABLE IF NOT EXISTS order_item (
   order_id bigint NOT NULL,
   product_id bigint NOT NULL,
   quantity bigint,
-  price bigint
 );
 
 CREATE TABLE IF NOT EXISTS order (
