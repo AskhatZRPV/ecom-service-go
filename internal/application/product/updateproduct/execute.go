@@ -1,4 +1,4 @@
-package getsingleproductbyid
+package updateproduct
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// FIXME
 func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
 	var res *Result
 

@@ -1,4 +1,4 @@
-package getsingleproductbyid
+package getproductbyid
 
 import (
 	"context"

@@ -10,7 +10,6 @@ import (
 type Payload struct {
 	ID int
 }
-type Result = product.Product
 
 type UseCase = usecase.Interactor[*Payload]
 

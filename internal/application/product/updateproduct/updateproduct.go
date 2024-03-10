@@ -1,4 +1,4 @@
-package getsingleproductbyid
+package updateproduct
 
 import (
 	"ecomsvc/internal/core/tx"
