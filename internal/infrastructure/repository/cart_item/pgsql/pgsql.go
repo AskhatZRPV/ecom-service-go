@@ -21,17 +21,23 @@ func New(db *sqlx.DB) cartitem.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, c *cartitem.CartItem) error {
+func (r *repo) Save(ctx context.Context, c *cartitem.CartItem) (int, error) {
 	const insertCartItemQuery = `
 		INSERT INTO cart_item (session_id, product_id, quantity) VALUES($1, $2, $3);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	if _, err := q.ExecContext(ctx, insertCartItemQuery, c.SessionId, c.ProductId, c.Quantity); err != nil {
-		return errors.Wrap(err, "failed to insert new cart_item record")
+	qRes, err := q.ExecContext(ctx, insertCartItemQuery, c.SessionId, c.ProductId, c.Quantity)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new cart_item record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*cartitem.CartItem, error) {
@@ -60,7 +66,7 @@ func (r *repo) FindAllBySessionId(ctx context.Context, id int) ([]cartitem.CartI
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var rows []cartItemRow
-	if err := q.GetContext(ctx, &rows, selectCartItemByIdQuery, id); err != nil {
+	if err := q.SelectContext(ctx, &rows, selectCartItemByIdQuery, id); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "cart_item not found in pg repo")
