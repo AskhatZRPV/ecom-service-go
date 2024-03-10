@@ -17,7 +17,7 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) error {
 		return errors.Wrap(err, "failed to hash password")
 	}
 
-	err = i.userRepo.Save(ctx, user.New(p.Username, pwd))
+	_, err = i.userRepo.Save(ctx, user.New(p.Username, pwd))
 	if err != nil {
 		return errors.Wrap(err, "failed to save user in repository")
 	}
