@@ -7,10 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
+func (i *implementation) Execute(ctx context.Context, p *Payload) (Result, error) {
 	res, err := i.uaRepo.Save(ctx, useraddress.New(p.UserId, p.FirstName, p.LastName, p.Address, p.City, p.PostalCode, p.Country, p.PhoneNumber))
 	if err != nil {
-		return errors.Wrap(err, "failed to persist refresh token")
+		return 0, errors.Wrap(err, "failed to persist refresh token")
 	}
-	return nil
+	return res, nil
 }

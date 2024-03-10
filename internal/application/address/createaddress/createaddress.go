@@ -16,9 +16,9 @@ type Payload struct {
 	PhoneNumber string
 }
 
-type Result = useraddress.UserAddress
+type Result = int
 
-type UseCase = usecase.UseCase[*Payload, *Result]
+type UseCase = usecase.UseCase[*Payload, Result]
 
 type implementation struct {
 	uaRepo useraddress.Repository
