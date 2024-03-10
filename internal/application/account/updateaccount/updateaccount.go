@@ -6,6 +6,7 @@ import (
 )
 
 type Payload struct {
+	ID      int
 	Balance int
 }
 
