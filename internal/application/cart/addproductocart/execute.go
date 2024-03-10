@@ -3,7 +3,6 @@ package addproducttocart
 import (
 	"context"
 	"ecomsvc/internal/domain/cartitem"
-	"ecomsvc/internal/domain/user"
 
 	"github.com/pkg/errors"
 )
@@ -16,20 +15,20 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) error {
 		}
 
 		product, err := i.pRepo.FindById(ctx, p.ID)
-		if err == nil || !errors.Is(err, user.ErrUserNotFound) {
-			return errors.Wrap(ErrAccountAlreadyExists, "account with such username exists")
+		if err != nil {
+			return errors.Wrap(err, "can't find product")
 		}
 
 		inv, err := i.iRepo.FindById(ctx, product.InventoryId)
-		if err == nil || !errors.Is(err, user.ErrUserNotFound) {
-			return errors.Wrap(ErrAccountAlreadyExists, "account with such username exists")
+		if err != nil {
+			return errors.Wrap(err, "product not found in inventory")
 		}
 
 		if inv.Quantity < p.Quantity {
 			return errors.New("not enough products in inventory")
 		}
-		i.
-		if err := i.ciRepo.Save(ctx, cartitem.New(ss.ID, p.ID, p.Quantity)); err != nil {
+		_, err = i.ciRepo.Save(ctx, cartitem.New(ss.ID, p.ID, p.Quantity))
+		if err != nil {
 			return errors.Wrap(err, "cant add products to cart")
 		}
 		return nil
