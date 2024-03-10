@@ -7,9 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (i *implementation) Execute(ctx context.Context, p *Payload) error {
-	if err := i.cRepo.Save(ctx, category.New(p.Title, p.Description)); err != nil {
-		return errors.Wrap(err, "failed to persist refresh token")
+func (i *implementation) Execute(ctx context.Context, p *Payload) (Result, error) {
+	res, err := i.cRepo.Save(ctx, category.New(p.Title, p.Description))
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to persist refresh token")
 	}
-	return nil
+	return res, nil
 }
