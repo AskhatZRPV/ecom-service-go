@@ -20,14 +20,14 @@ func New(db *sqlx.DB) useraddress.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, c *useraddress.UserAddress) error {
+func (r *repo) Save(ctx context.Context, c *useraddress.UserAddress) (int, error) {
 	const insertUserAddressQuery = `
 		INSERT INTO user_address (user_id, first_name, last_name, address_line1, city, postal_code, country, phone_number, created_at, updated_at) 
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	if _, err := q.ExecContext(ctx, insertUserAddressQuery,
+	qRes, err := q.ExecContext(ctx, insertUserAddressQuery,
 		c.UserId,
 		c.FirstName,
 		c.LastName,
@@ -36,11 +36,17 @@ func (r *repo) Save(ctx context.Context, c *useraddress.UserAddress) error {
 		c.PhoneNumber,
 		c.CreatedAt,
 		c.UpdatedAt,
-	); err != nil {
-		return errors.Wrap(err, "failed to insert new user_address record")
+	)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new user_address record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*useraddress.UserAddress, error) {
@@ -84,7 +90,7 @@ func (r *repo) FindByUserId(ctx context.Context, id int) (*useraddress.UserAddre
 func (r *repo) UpdateById(ctx context.Context, i *useraddress.UserAddress) (*useraddress.UserAddress, error) {
 	const updateById = `
 		UPDATE user_address 
-		SET user_id = $2, first_name = $3, last_name = $4, address_line1 = $5, city = $6, postal_code = $7, country = $8, phone_number $9, updated_at = $10 
+		SET first_name = $2, last_name = $3, address_line1 = $4, city = $5, postal_code = $6, country = $7, phone_number $8, updated_at = $9 
 		WHERE id = $1;
 	`
 
@@ -92,7 +98,6 @@ func (r *repo) UpdateById(ctx context.Context, i *useraddress.UserAddress) (*use
 	var row userAddressRow
 	if err := q.GetContext(ctx, &row, updateById,
 		i.ID,
-		i.UserId,
 		i.FirstName,
 		i.LastName,
 		i.Address,
