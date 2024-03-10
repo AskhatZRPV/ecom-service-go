@@ -1,4 +1,4 @@
-package getcart
+package getusersorders
 
 import (
 	"ecomsvc/internal/core/tx"
@@ -9,9 +9,7 @@ import (
 )
 
 type Payload struct {
-	ID       int
-	UserID   int
-	Quantity int
+	UserID int
 }
 
 type UseCase = usecase.UseCase[*Payload, *Result]
