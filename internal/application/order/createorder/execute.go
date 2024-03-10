@@ -1,4 +1,4 @@
-package getcart
+package createorder
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
-	var pMap productMap
+func (i *implementation) Execute(ctx context.Context, p *Payload) (Result, error) {
 	var ciRes []cartitem.CartItem
+	var orId int
 
 	err := i.txManager.Do(ctx, func(ctx context.Context) error {
 		ss, err := i.ssRepo.FindById(ctx, p.CartID)
@@ -38,7 +38,7 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, erro
 			return errors.Wrap(err, "cart not found")
 		}
 
-		orId, err := i.orRepo.Save(ctx, order.New(paId, p.UserID))
+		orId, err = i.orRepo.Save(ctx, order.New(paId, p.UserID))
 		if err != nil {
 			return errors.Wrap(err, "cart not found")
 		}
@@ -61,8 +61,8 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, erro
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to run transaction")
+		return 0, errors.Wrap(err, "failed to run transaction")
 	}
 
-	return makeResult(p.ID, p.UserID, ciRes, pMap), nil
+	return orId, nil
 }

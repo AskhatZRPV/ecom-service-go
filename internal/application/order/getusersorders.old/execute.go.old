@@ -1,4 +1,4 @@
-package getcart
+package getusersorders
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// FIXME:
 func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
 	var pMap productMap
 	var ciRes []cartitem.CartItem
@@ -47,7 +48,7 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, erro
 	return makeResult(p.ID, p.UserID, ciRes, pMap), nil
 }
 
-func makeResult(id int, userId int, ciSl []cartitem.CartItem, pMap productMap) *Result {
+func makeResult(userId int, ciSl []cartitem.CartItem, pMap productMap) *Result {
 	totalPrice := 0
 	sciSl := make([]SingleCartItemResult, len(ciSl))
 

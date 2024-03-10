@@ -1,4 +1,4 @@
-package getcart
+package getallorders
 
 import "ecomsvc/internal/core/domainerr"
 
