@@ -4,21 +4,25 @@ import (
 	"context"
 	"ecomsvc/internal/domain/cartitem"
 	"ecomsvc/internal/domain/product"
+	"ecomsvc/internal/domain/shoppingsession"
 
 	"github.com/pkg/errors"
 )
 
+// FIXME:
 func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
 	var pMap productMap
 	var ciRes []cartitem.CartItem
+	var ssRes *shoppingsession.ShoppingSession
 
 	err := i.txManager.Do(ctx, func(ctx context.Context) error {
-		ss, err := i.ssRepo.FindByUserId(ctx, p.UserID)
+		var err error
+		ssRes, err = i.ssRepo.FindById(ctx, p.ID)
 		if err != nil {
 			return errors.Wrap(err, "cart not found")
 		}
 
-		ciRes, err = i.ciRepo.FindAllBySessionId(ctx, ss.ID)
+		ciRes, err = i.ciRepo.FindAllBySessionId(ctx, ssRes.ID)
 		if err != nil {
 			return errors.Wrap(err, "cant add products to cart")
 		}
@@ -44,7 +48,7 @@ func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, erro
 		return nil, errors.Wrap(err, "failed to run transaction")
 	}
 
-	return makeResult(p.ID, p.UserID, ciRes, pMap), nil
+	return makeResult(p.ID, ssRes.UserID, ciRes, pMap), nil
 }
 
 func makeResult(id int, userId int, ciSl []cartitem.CartItem, pMap productMap) *Result {

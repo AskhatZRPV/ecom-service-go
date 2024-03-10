@@ -7,7 +7,7 @@ import (
 )
 
 type Payload struct {
-	UserID int
+	ID int
 }
 
 type UseCase = usecase.Interactor[*Payload]

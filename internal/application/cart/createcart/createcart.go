@@ -10,7 +10,9 @@ type Payload struct {
 	UserID int
 }
 
-type UseCase = usecase.Interactor[*Payload]
+type Result = int
+
+type UseCase = usecase.UseCase[*Payload, Result]
 
 type implementation struct {
 	txManager tx.TransactionManager
