@@ -21,18 +21,24 @@ func New(db *sqlx.DB) product.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, p *product.Product) error {
+func (r *repo) Save(ctx context.Context, p *product.Product) (int, error) {
 	const insertUserQuery = `
 		INSERT INTO product (id, title, description, price, category_id) 
 		VALUES($1, $2, $3, $4, $5);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	if _, err := q.ExecContext(ctx, insertUserQuery, p.ID, p.Title, p.Description, p.Price, p.CategoryId); err != nil {
-		return errors.Wrap(err, "failed to insert new product record")
+	qRes, err := q.ExecContext(ctx, insertUserQuery, p.ID, p.Title, p.Description, p.Price, p.CategoryId)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new product record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*product.Product, error) {
@@ -55,14 +61,40 @@ func (r *repo) FindById(ctx context.Context, id int) (*product.Product, error) {
 	return row.ToDomain(), nil
 }
 
-func (r *repo) GetAll(ctx context.Context) ([]product.Product, error) {
+func (r *repo) GetInIds(ctx context.Context, ids []int) ([]product.Product, error) {
+	const selectProductsByIdQuery = `
+		SELECT * FROM product 
+		WHERE id IN (?);
+	`
+
+	query, args, err := sqlx.In(selectProductsByIdQuery, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	q := pgsqltx.QuerierFromCtx(ctx, r.db)
+	var rows []productRow
+	if err := q.SelectContext(ctx, &rows, query, args...); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, errors.Wrap(user.ErrUserNotFound, "product not found in pg repo")
+		default:
+			return nil, errors.Wrap(err, "unexpected query error")
+		}
+	}
+
+	return mapper.Map[productRow, product.Product](rows, toDomain), nil
+}
+
+func (r *repo) GetAll(ctx context.Context, limit int, offset int) ([]product.Product, error) {
 	const getAllProducts = `
-		SELECT * FROM product;
+		SELECT * FROM product
+		LIMIT $1 OFFSET $2;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var rows []productRow
-	if err := q.GetContext(ctx, &rows, getAllProducts); err != nil {
+	if err := q.SelectContext(ctx, &rows, getAllProducts, limit, offset); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "product not found in pg repo")
