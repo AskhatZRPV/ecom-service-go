@@ -4,7 +4,14 @@ import "time"
 
 type Payment struct {
 	ID        int
-	OrderId   int
 	Amount    int
 	CreatedAt *time.Time
+}
+
+func New(amount int) *Payment {
+	now := time.Now()
+	return &Payment{
+		Amount:    amount,
+		CreatedAt: &now,
+	}
 }

@@ -1,0 +1,29 @@
+package get_getsingle
+
+import (
+	"ecomsvc/internal/application/order/getorder"
+	"ecomsvc/internal/interface/http_rest/common"
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+type handler struct {
+	usecase getorder.UseCase
+}
+
+func New(usecase getorder.UseCase) common.Handler {
+	return &handler{usecase}
+}
+
+func (h *handler) Pattern() string {
+	return "/order/:id"
+}
+
+func (h *handler) Method() string {
+	return http.MethodGet
+}
+
+func (h *handler) Middleware() []fiber.Handler {
+	return []fiber.Handler{}
+}

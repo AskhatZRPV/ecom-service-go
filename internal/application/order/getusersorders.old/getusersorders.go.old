@@ -1,0 +1,52 @@
+package getusersorders
+
+import (
+	"ecomsvc/internal/core/tx"
+	"ecomsvc/internal/core/usecase"
+	"ecomsvc/internal/domain/cartitem"
+	"ecomsvc/internal/domain/product"
+	"ecomsvc/internal/domain/shoppingsession"
+)
+
+type Payload struct {
+	UserID int
+}
+
+type UseCase = usecase.UseCase[*Payload, *Result]
+
+type Result struct {
+	ID     int
+	UserId int
+	Total  int
+	Items  []SingleCartItemResult
+}
+
+type SingleCartItemResult struct {
+	ID          int
+	ProductId   int
+	CategoryId  int
+	SKU         string
+	Title       string
+	Description string
+	Price       int
+	Quantity    int
+	TotalPrice  int
+}
+
+type productMap map[int]product.Product
+
+type implementation struct {
+	txManager tx.TransactionManager
+	pRepo     product.Repository
+	ssRepo    shoppingsession.Repository
+	ciRepo    cartitem.Repository
+}
+
+func New(
+	txManager tx.TransactionManager,
+	pRepo product.Repository,
+	ssRepo shoppingsession.Repository,
+	ciRepo cartitem.Repository,
+) UseCase {
+	return &implementation{txManager, pRepo, ssRepo, ciRepo}
+}

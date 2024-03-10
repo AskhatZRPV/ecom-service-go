@@ -20,19 +20,24 @@ func New(db *sqlx.DB) useraccount.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, u *useraccount.UserAccount) error {
+func (r *repo) Save(ctx context.Context, u *useraccount.UserAccount) (int, error) {
 	const createSession = `
 		INSERT INTO user_account (user_id, balance)
 		VALUES($1, $2);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	_, err := q.ExecContext(ctx, createSession, u.UserId, u.Balance)
+	qRes, err := q.ExecContext(ctx, createSession, u.UserId, u.Balance)
 	if err != nil {
-		return errors.Wrap(err, "failed to create user account record")
+		return 0, errors.Wrap(err, "failed to create user account record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*useraccount.UserAccount, error) {
@@ -77,13 +82,13 @@ func (r *repo) FindByUserId(ctx context.Context, id int) (*useraccount.UserAccou
 
 func (r *repo) UpdateById(ctx context.Context, s *useraccount.UserAccount) (*useraccount.UserAccount, error) {
 	const updateUserAccountByIdQuery = `
-		UPDATE user_account SET user_id = $2, balance = $3 
+		UPDATE user_account SETbalance = $2 
 		WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var row userAccountRow
-	if err := q.GetContext(ctx, &row, updateUserAccountByIdQuery, s.ID, s.UserId, s.Balance); err != nil {
+	if err := q.GetContext(ctx, &row, updateUserAccountByIdQuery, s.ID, s.Balance); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "user account not found in pg repo")

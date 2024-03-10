@@ -21,17 +21,23 @@ func New(db *sqlx.DB) category.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, c *category.Category) error {
+func (r *repo) Save(ctx context.Context, c *category.Category) (int, error) {
 	const insertCategoryQuery = `
 		INSERT INTO category (title, description) VALUES($1, $2);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	if _, err := q.ExecContext(ctx, insertCategoryQuery, c.Title, c.Description); err != nil {
-		return errors.Wrap(err, "failed to insert new product record")
+	qRes, err := q.ExecContext(ctx, insertCategoryQuery, c.Title, c.Description)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new product record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*category.Category, error) {

@@ -20,19 +20,24 @@ func New(db *sqlx.DB) shoppingsession.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, s *shoppingsession.ShoppingSession) error {
+func (r *repo) Save(ctx context.Context, s *shoppingsession.ShoppingSession) (int, error) {
 	const createSession = `
 		INSERT INTO shopping_session (user_id, total_price)
 		VALUES($1, $2);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	_, err := q.ExecContext(ctx, createSession, s.UserID, s.TotalPrice)
+	qRes, err := q.ExecContext(ctx, createSession, s.UserID, s.TotalPrice)
 	if err != nil {
-		return errors.Wrap(err, "failed to create session record")
+		return 0, errors.Wrap(err, "failed to create session record")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*shoppingsession.ShoppingSession, error) {

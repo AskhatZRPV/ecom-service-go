@@ -20,18 +20,24 @@ func New(db *sqlx.DB) payment.Repository {
 	return &repo{db}
 }
 
-func (r *repo) Save(ctx context.Context, p *payment.Payment) error {
+func (r *repo) Save(ctx context.Context, p *payment.Payment) (int, error) {
 	const insertPaymentQuery = `
-		INSERT INTO payment (order_id, amount, created_at)
-		VALUES($1, $2, $3);
+		INSERT INTO payment (amount, created_at)
+		VALUES($1, $2);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
-	if _, err := q.ExecContext(ctx, insertPaymentQuery, p.ID, p.OrderId, p.CreatedAt); err != nil {
-		return errors.Wrap(err, "failed to insert new payment record")
+	res, err := q.ExecContext(ctx, insertPaymentQuery, p.ID, p.CreatedAt)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new payment record")
 	}
 
-	return nil
+	resId, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(resId), nil
 }
 
 func (r *repo) FindById(ctx context.Context, id int) (*payment.Payment, error) {
@@ -57,13 +63,13 @@ func (r *repo) FindById(ctx context.Context, id int) (*payment.Payment, error) {
 func (r *repo) UpdateById(ctx context.Context, p *payment.Payment) (*payment.Payment, error) {
 	const updateByIdQuery = `
 		UPDATE payment
-		SET order_id = $2, amount = $3
+		SET amount = $2
 		WHERE id = $1;
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, r.db)
 	var row paymentRow
-	if err := q.GetContext(ctx, &row, updateByIdQuery, p.ID, p.OrderId, p.Amount); err != nil {
+	if err := q.GetContext(ctx, &row, updateByIdQuery, p.ID, p.Amount); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, errors.Wrap(user.ErrUserNotFound, "payment not found in pg repo")
