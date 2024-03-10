@@ -14,9 +14,9 @@ type Payload struct {
 	Quantity    int
 	Price       int
 }
-type Result = product.Product
+type Result = int
 
-type UseCase = usecase.UseCase[*Payload, *Result]
+type UseCase = usecase.UseCase[*Payload, Result]
 
 type implementation struct {
 	txManager tx.TransactionManager
