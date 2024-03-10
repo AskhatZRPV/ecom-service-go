@@ -8,7 +8,7 @@ import (
 )
 
 func (i *implementation) Execute(ctx context.Context, p *Payload) (*Result, error) {
-	res, err := i.cRepo.UpdateById(ctx, category.New(p.Title, p.Description))
+	res, err := i.cRepo.UpdateById(ctx, category.Update(p.ID, p.Title, p.Description))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to persist refresh token")
 	}

@@ -10,9 +10,9 @@ type Payload struct {
 	Description string
 }
 
-type Result = category.Category
+type Result = int
 
-type UseCase = usecase.Interactor[*Payload]
+type UseCase = usecase.UseCase[*Payload, Result]
 
 type implementation struct {
 	cRepo category.Repository

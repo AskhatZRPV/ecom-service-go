@@ -6,6 +6,7 @@ import (
 )
 
 type Payload struct {
+	ID          int
 	Title       string
 	Description string
 }
