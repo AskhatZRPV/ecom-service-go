@@ -19,17 +19,23 @@ func New(db *sqlx.DB) user.Repository {
 	return &repo{db}
 }
 
-func (i *repo) Save(ctx context.Context, u *user.User) error {
+func (i *repo) Save(ctx context.Context, u *user.User) (int, error) {
 	const insertUserQuery = `
 		INSERT INTO user (username, password, role, created_at) VALUES($1, $2, $3, $4);
 	`
 
 	q := pgsqltx.QuerierFromCtx(ctx, i.db)
-	if _, err := q.ExecContext(ctx, insertUserQuery, u.Username, u.Password, u.Role, u.CreatedAt); err != nil {
-		return errors.Wrap(err, "failed to insert new user recotd")
+	qRes, err := q.ExecContext(ctx, insertUserQuery, u.Username, u.Password, u.Role, u.CreatedAt)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert new user recotd")
 	}
 
-	return nil
+	lastId, err := qRes.LastInsertId()
+	if err != nil {
+		return 0, errors.Wrap(err, "cannot get last inserted id")
+	}
+
+	return int(lastId), nil
 }
 
 func (i *repo) FindByUsername(ctx context.Context, username string) (*user.User, error) {
